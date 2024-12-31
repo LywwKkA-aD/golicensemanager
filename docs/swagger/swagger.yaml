@@ -1,0 +1,331 @@
+openapi: 3.0.3
+info:
+  title: GoLicenseManager API
+  description: API for managing software licenses across multiple applications
+  version: 1.0.0
+  contact:
+    name: Your Name
+    email: your.email@example.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+  - url: https://api.yourdomain.com/api/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        version:
+          type: string
+        api_key:
+          type: string
+        api_secret:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - name
+
+    License:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        application_id:
+          type: string
+          format: uuid
+        license_type_id:
+          type: string
+          format: uuid
+        client_id:
+          type: string
+          format: uuid
+        license_key:
+          type: string
+        start_date:
+          type: string
+          format: date
+        expiry_date:
+          type: string
+          format: date
+        usage_limits:
+          type: object
+        current_usage:
+          type: object
+        is_active:
+          type: boolean
+        is_revoked:
+          type: boolean
+        revocation_reason:
+          type: string
+        last_check:
+          type: string
+          format: date-time
+      required:
+        - application_id
+        - license_type_id
+        - client_id
+
+    Client:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        application_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        company:
+          type: string
+        contact_person:
+          type: string
+        phone:
+          type: string
+        metadata:
+          type: object
+        is_active:
+          type: boolean
+      required:
+        - application_id
+        - name
+        - email
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+        error:
+          type: string
+
+paths:
+  /auth/token:
+    post:
+      summary: Generate authentication token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                api_key:
+                  type: string
+                api_secret:
+                  type: string
+              required:
+                - api_key
+                - api_secret
+      responses:
+        '200':
+          description: Token generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /applications:
+    post:
+      summary: Create new application
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Application'
+      responses:
+        '201':
+          description: Application created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Application'
+    
+    get:
+      summary: List all applications
+      responses:
+        '200':
+          description: List of applications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Application'
+
+  /licenses:
+    post:
+      summary: Create new license
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/License'
+      responses:
+        '201':
+          description: License created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/License'
+
+    get:
+      summary: List licenses
+      parameters:
+        - in: query
+          name: application_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: query
+          name: client_id
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: is_active
+          schema:
+            type: boolean
+        - in: query
+          name: is_revoked
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of licenses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/License'
+
+  /licenses/{id}/validate:
+    post:
+      summary: Validate license
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                license_key:
+                  type: string
+              required:
+                - license_key
+      responses:
+        '200':
+          description: License validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      valid:
+                        type: boolean
+                      message:
+                        type: string
+                      expires_at:
+                        type: string
+                        format: date-time
+                      features:
+                        type: object
+
+  /clients:
+    post:
+      summary: Create new client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Client'
+      responses:
+        '201':
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Client'
