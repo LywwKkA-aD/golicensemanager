@@ -66,8 +66,8 @@ mkdir -p test/{integration,mocks,fixtures}
 touch test/{integration,mocks,fixtures}/.gitkeep
 
 # docs structure
-mkdir -p docs/{architecture,api,development}
-touch docs/{architecture,api,development}/.gitkeep
+mkdir -p docs/{swagger,architecture,api,development}
+touch docs/{swagger,architecture,api,development}/.gitkeep
 
 # Create .gitignore content
 cat > .gitignore << 'EOL'
