@@ -38,7 +38,7 @@ migrate-down:
 
 # Generate mock data
 generate-mocks:
-    mockgen -destination test/mocks/repository_mock.go -package mocks github.com/yourusername/golicensemanager/internal/repository Repository
+    mockgen -destination test/mocks/repository_mock.go -package mocks github.com/LywwKkA-aD/golicensemanager/internal/repository Repository
 
 # Start development environment with Docker
 docker-dev:
